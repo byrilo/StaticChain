@@ -6,6 +6,7 @@ public class UIStateController : MonoBehaviour
     [SerializeField] private GameObject gamePanel;
     [SerializeField] private GameObject phraseControls;
     [SerializeField] private GameObject drawingControls;
+    [SerializeField] private GameObject resultsPanel;
 
     private int _lastRound = int.MinValue;
     private bool _lastStarted;
@@ -23,10 +24,18 @@ public class UIStateController : MonoBehaviour
         _lastStarted = started;
         _lastRound = round;
 
-        lobbyPanel.SetActive(!started);
-        gamePanel.SetActive(started);
+        bool finished = started && round >= GameManager.Instance.TotalRounds;
 
-        if (!started) return;
+        lobbyPanel.SetActive(!started);
+        gamePanel.SetActive(started && !finished);
+        resultsPanel.SetActive(finished);
+
+        if (!started || finished)
+        {
+            phraseControls.SetActive(false);
+            drawingControls.SetActive(false);
+            return;
+        }
 
         bool roundActive = round >= 0 && round < GameManager.Instance.TotalRounds;
         var contentType = roundActive ? GameManager.GetContentType(round) : ContentType.Phrase;
