@@ -21,6 +21,8 @@ public class DrawingCanvas : MonoBehaviour, IPointerDownHandler, IDragHandler, I
         Clear();
     }
 
+    public byte[] EncodePng() => _texture.EncodeToPNG();
+
     public void SetColor(Color color) => _currentColor = color;
 
     public void SetColorBlack() => SetColor(Color.black);
