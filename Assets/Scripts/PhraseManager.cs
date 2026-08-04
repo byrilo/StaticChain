@@ -29,24 +29,40 @@ public class PhraseManager : NetworkBehaviour
     public void SubmitPhraseRpc(FixedString128Bytes phrase, RpcParams rpcParams = default)
     {
         var senderId = rpcParams.Receive.SenderClientId;
+        int round = GameManager.Instance.CurrentRound;
 
-        for (int i = 0; i < _phrases.Count; i++)
+        if (round < 0 || round >= GameManager.Instance.TotalRounds) return;
+        if (GameManager.GetContentType(round) != ContentType.Phrase) return;
+
+        int chainId = GameManager.Instance.GetChainIdForPlayer(senderId, round);
+        if (chainId < 0) return;
+        if (GameManager.Instance.HasSubmittedThisRound(chainId)) return;
+
+        _phrases.Add(new PhraseEntry { ChainId = chainId, Round = round, ClientId = senderId, Phrase = phrase });
+        GameManager.Instance.ReportSubmission(chainId);
+    }
+
+    public bool TryGetPhrase(int chainId, int round, out string text)
+    {
+        foreach (var p in _phrases)
         {
-            if (_phrases[i].ClientId == senderId)
+            if (p.ChainId == chainId && p.Round == round)
             {
-                _phrases[i] = new PhraseEntry { ClientId = senderId, Phrase = phrase };
-                return;
+                text = p.Phrase.ToString();
+                return true;
             }
         }
-        _phrases.Add(new PhraseEntry { ClientId = senderId, Phrase = phrase });
+        text = null;
+        return false;
     }
 
     private void OnPhrasesChanged(NetworkListEvent<PhraseEntry> _) => RefreshText();
 
     private void RefreshText()
     {
+        if (phraseStatusText == null) return;
         var sb = new StringBuilder("Фразы:\n");
-        foreach (var p in _phrases) sb.AppendLine($"Игрок {p.ClientId}: {p.Phrase}");
+        foreach (var p in _phrases) sb.AppendLine($"Цепь {p.ChainId}, раунд {p.Round}: {p.Phrase}");
         phraseStatusText.text = sb.ToString();
     }
 }

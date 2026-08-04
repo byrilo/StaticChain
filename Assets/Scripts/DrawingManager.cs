@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,24 +9,40 @@ public class DrawingManager : NetworkBehaviour
 
     [SerializeField] private RawImage receivedDrawingDisplay;
 
+    private readonly Dictionary<(int chainId, int round), byte[]> _drawings = new();
+
     private void Awake() => Instance = this;
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void SubmitDrawingRpc(byte[] pngData, RpcParams rpcParams = default)
     {
         var senderId = rpcParams.Receive.SenderClientId;
-        BroadcastDrawingRpc(senderId, pngData);
+        int round = GameManager.Instance.CurrentRound;
+
+        if (round < 0 || round >= GameManager.Instance.TotalRounds) return;
+        if (GameManager.GetContentType(round) != ContentType.Drawing) return;
+
+        int chainId = GameManager.Instance.GetChainIdForPlayer(senderId, round);
+        if (chainId < 0) return;
+        if (GameManager.Instance.HasSubmittedThisRound(chainId)) return;
+
+        BroadcastDrawingRpc(chainId, round, senderId, pngData);
+        GameManager.Instance.ReportSubmission(chainId);
     }
 
     [Rpc(SendTo.Everyone)]
-    private void BroadcastDrawingRpc(ulong fromClientId, byte[] pngData)
+    private void BroadcastDrawingRpc(int chainId, int round, ulong fromClientId, byte[] pngData)
     {
-        var texture = new Texture2D(2, 2);
-        texture.LoadImage(pngData);
+        _drawings[(chainId, round)] = pngData;
 
         if (receivedDrawingDisplay != null)
+        {
+            var texture = new Texture2D(2, 2);
+            texture.LoadImage(pngData);
             receivedDrawingDisplay.texture = texture;
-
-        Debug.Log($"Получен рисунок от игрока {fromClientId}, размер {pngData.Length} байт");
+        }
     }
+
+    public bool TryGetDrawing(int chainId, int round, out byte[] pngData) =>
+        _drawings.TryGetValue((chainId, round), out pngData);
 }
