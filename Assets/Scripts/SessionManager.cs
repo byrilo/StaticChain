@@ -33,7 +33,7 @@ public class SessionManager : MonoBehaviour
         {
             var options = new SessionOptions { MaxPlayers = 8 }.WithRelayNetwork();
             _session = await MultiplayerService.Instance.CreateSessionAsync(options);
-            statusText.text = $"Код комнаты: {_session.Code}";
+            statusText.text = $"Код комнаты: {_session.Code}\nNGO IsHost: {Unity.Netcode.NetworkManager.Singleton.IsHost}";
         }
         catch (Exception e)
         {
@@ -42,13 +42,14 @@ public class SessionManager : MonoBehaviour
         }
     }
 
+
     public async void OnJoinClicked()
     {
         try
         {
             var code = joinCodeInput.text.Trim();
             _session = await MultiplayerService.Instance.JoinSessionByCodeAsync(code);
-            statusText.text = $"Подключено: {code}";
+            statusText.text = $"Подключено: {code}\nNGO IsClient: {Unity.Netcode.NetworkManager.Singleton.IsClient}, ConnectedClients: {Unity.Netcode.NetworkManager.Singleton.ConnectedClientsList.Count}";
         }
         catch (Exception e)
         {
