@@ -7,6 +7,8 @@ public class UIStateController : MonoBehaviour
     [SerializeField] private GameObject phraseControls;
     [SerializeField] private GameObject drawingControls;
     [SerializeField] private GameObject resultsPanel;
+    [SerializeField] private GameObject promptText;
+    [SerializeField] private GameObject promptImage;
 
     private int _lastRound = int.MinValue;
     private bool _lastStarted;
@@ -25,15 +27,18 @@ public class UIStateController : MonoBehaviour
         _lastRound = round;
 
         bool finished = started && round >= GameManager.Instance.TotalRounds;
+        bool inRound = started && !finished;
 
         lobbyPanel.SetActive(!started);
-        gamePanel.SetActive(started && !finished);
+        gamePanel.SetActive(inRound);
         resultsPanel.SetActive(finished);
+        promptText.SetActive(inRound);
 
-        if (!started || finished)
+        if (!inRound)
         {
             phraseControls.SetActive(false);
             drawingControls.SetActive(false);
+            promptImage.SetActive(false);
             return;
         }
 
@@ -42,5 +47,9 @@ public class UIStateController : MonoBehaviour
 
         phraseControls.SetActive(roundActive && contentType == ContentType.Phrase);
         drawingControls.SetActive(roundActive && contentType == ContentType.Drawing);
+
+        // PromptController сам решает, когда именно показывать картинку внутри раунда
+        // (например, при вводе первой фразы картинки ещё нет) — тут просто гарантируем,
+        // что вне игровых раундов она точно выключена.
     }
 }

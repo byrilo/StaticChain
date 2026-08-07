@@ -10,4 +10,18 @@ public class GameControlUI : MonoBehaviour
         int.TryParse(roundsInput.text, out var requestedRounds);
         GameManager.Instance.StartGameRpc(requestedRounds);
     }
+
+    public void OnPlayAgainClicked()
+    {
+        GameManager.Instance.ResetGameRpc();
+    }
+
+    public void OnQuitClicked()
+    {
+        Application.Quit();
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+    }
 }

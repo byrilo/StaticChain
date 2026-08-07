@@ -7,6 +7,7 @@ public class PromptController : MonoBehaviour
 {
     [SerializeField] private TMP_Text promptText;
     [SerializeField] private RawImage promptImage;
+    [SerializeField] private DrawingCanvas drawingCanvas;
 
     private int _lastRound = int.MinValue;
 
@@ -62,6 +63,7 @@ public class PromptController : MonoBehaviour
         }
         else
         {
+            drawingCanvas.Clear();
             promptText.text = PhraseManager.Instance.TryGetPhrase(chainId, round - 1, out var text)
                 ? $"Нарисуйте: {text}"
                 : "Ждём фразу предыдущего игрока...";

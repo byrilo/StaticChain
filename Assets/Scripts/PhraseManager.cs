@@ -28,6 +28,8 @@ public class PhraseManager : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     public void SubmitPhraseRpc(FixedString128Bytes phrase, RpcParams rpcParams = default)
     {
+        if (phrase.IsEmpty) return;
+
         var senderId = rpcParams.Receive.SenderClientId;
         int round = GameManager.Instance.CurrentRound;
 
@@ -40,6 +42,12 @@ public class PhraseManager : NetworkBehaviour
 
         _phrases.Add(new PhraseEntry { ChainId = chainId, Round = round, ClientId = senderId, Phrase = phrase });
         GameManager.Instance.ReportSubmission(chainId);
+    }
+
+    public void ClearAll()
+    {
+        if (!IsServer) return;
+        _phrases.Clear();
     }
 
     public bool TryGetPhrase(int chainId, int round, out string text)

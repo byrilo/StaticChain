@@ -80,11 +80,30 @@ public class GameManager : NetworkBehaviour
         }
     }
 
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    public void ResetGameRpc(RpcParams rpcParams = default)
+    {
+        if (rpcParams.Receive.SenderClientId != NetworkManager.ServerClientId) return;
+        if (_currentRound.Value < _totalRounds.Value) return; // разрешаем сброс только после финиша
+
+        _submittedChainsThisRound.Clear();
+        _playerOrder.Clear();
+        _currentRound.Value = -1;
+        _totalRounds.Value = 0;
+
+        PhraseManager.Instance.ClearAll();
+        DrawingManager.Instance.ClearAllRpc();
+    }
+
     private void RefreshStatus()
     {
         if (gameStatusText == null) return;
-        gameStatusText.text = _currentRound.Value < 0
-            ? "Лобби, ждём старта"
-            : $"Раунд {_currentRound.Value + 1} / {_totalRounds.Value}";
+
+        if (_currentRound.Value < 0)
+            gameStatusText.text = "Лобби, ждём старта";
+        else if (_currentRound.Value >= _totalRounds.Value)
+            gameStatusText.text = "Игра завершена!";
+        else
+            gameStatusText.text = $"Раунд {_currentRound.Value + 1} / {_totalRounds.Value}";
     }
 }

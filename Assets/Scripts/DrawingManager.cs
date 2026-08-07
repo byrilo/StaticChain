@@ -45,4 +45,10 @@ public class DrawingManager : NetworkBehaviour
 
     public bool TryGetDrawing(int chainId, int round, out byte[] pngData) =>
         _drawings.TryGetValue((chainId, round), out pngData);
+
+    [Rpc(SendTo.Everyone)]
+    public void ClearAllRpc()
+    {
+        _drawings.Clear();
+    }
 }
