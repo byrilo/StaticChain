@@ -7,6 +7,10 @@ public class DrawingCanvas : MonoBehaviour, IPointerDownHandler, IDragHandler, I
 {
     [SerializeField] private int textureSize = 512;
     [SerializeField] private int brushRadius = 4;
+    [SerializeField] private Image colorPreview;
+    [SerializeField] private TMPro.TMP_Text brushSizeText;
+
+    private static readonly Color LockedTint = new Color(0.6f, 0.6f, 0.6f, 1f);
 
     private Texture2D _texture;
     private RawImage _rawImage;
@@ -14,27 +18,53 @@ public class DrawingCanvas : MonoBehaviour, IPointerDownHandler, IDragHandler, I
     private Vector2? _lastPixelPos;
     private bool _locked;
 
+    public bool IsLocked => _locked;
+
     private void Awake()
     {
         _rawImage = GetComponent<RawImage>();
         _texture = new Texture2D(textureSize, textureSize);
         _rawImage.texture = _texture;
         Clear();
+        SetColor(_currentColor);
+        RefreshBrushSizeText();
     }
 
     public byte[] EncodePng() => _texture.EncodeToPNG();
 
-    public void SetColor(Color color) => _currentColor = color;
+    public void SetColor(Color color)
+    {
+        _currentColor = color;
+        if (colorPreview != null) colorPreview.color = color;
+    }
 
     public void SetColorBlack() => SetColor(Color.black);
     public void SetColorRed() => SetColor(Color.red);
     public void SetColorBlue() => SetColor(Color.blue);
     public void SetColorGreen() => SetColor(Color.green);
 
-    public void SetBrushSize(float size) => brushRadius = Mathf.Max(1, Mathf.RoundToInt(size));
+    public void SetBrushSize(float size)
+    {
+        brushRadius = Mathf.Max(1, Mathf.RoundToInt(size));
+        RefreshBrushSizeText();
+    }
 
-    public void Lock() => _locked = true;
-    public void Unlock() => _locked = false;
+    private void RefreshBrushSizeText()
+    {
+        if (brushSizeText != null) brushSizeText.text = $"Brush: {brushRadius}";
+    }
+
+    public void Lock()
+    {
+        _locked = true;
+        if (_rawImage != null) _rawImage.color = LockedTint;
+    }
+
+    public void Unlock()
+    {
+        _locked = false;
+        if (_rawImage != null) _rawImage.color = Color.white;
+    }
 
     public void Clear()
     {
@@ -43,7 +73,7 @@ public class DrawingCanvas : MonoBehaviour, IPointerDownHandler, IDragHandler, I
         _texture.SetPixels(pixels);
         _texture.Apply();
         _lastPixelPos = null;
-        _locked = false;
+        Unlock();
     }
 
     public void OnPointerDown(PointerEventData eventData)
@@ -80,7 +110,7 @@ public class DrawingCanvas : MonoBehaviour, IPointerDownHandler, IDragHandler, I
         if (_lastPixelPos.HasValue)
             DrawLine(_lastPixelPos.Value, pixelPos);
         else
-            DrawCircle(pixelPos);
+            DrawStamp(pixelPos);
 
         _lastPixelPos = pixelPos;
         _texture.Apply();
@@ -93,24 +123,35 @@ public class DrawingCanvas : MonoBehaviour, IPointerDownHandler, IDragHandler, I
         for (int i = 0; i <= steps; i++)
         {
             var point = Vector2.Lerp(from, to, i / (float)steps);
-            DrawCircle(point);
+            DrawStamp(point);
         }
     }
 
-    private void DrawCircle(Vector2 center)
+    // Овальный штамп кисти с мягким (сглаженным) краем вместо жёсткого пиксельного круга.
+    private void DrawStamp(Vector2 center)
     {
         int cx = Mathf.RoundToInt(center.x);
         int cy = Mathf.RoundToInt(center.y);
 
-        for (int x = -brushRadius; x <= brushRadius; x++)
+        int radiusX = brushRadius;
+        int radiusY = Mathf.Max(1, Mathf.RoundToInt(brushRadius * 0.7f));
+
+        for (int x = -radiusX; x <= radiusX; x++)
         {
-            for (int y = -brushRadius; y <= brushRadius; y++)
+            for (int y = -radiusY; y <= radiusY; y++)
             {
-                if (x * x + y * y > brushRadius * brushRadius) continue;
+                float nx = x / (float)radiusX;
+                float ny = y / (float)radiusY;
+                float dist = nx * nx + ny * ny;
+                if (dist > 1f) continue;
+
                 int px = cx + x;
                 int py = cy + y;
                 if (px < 0 || px >= textureSize || py < 0 || py >= textureSize) continue;
-                _texture.SetPixel(px, py, _currentColor);
+
+                float alpha = Mathf.Clamp01((1f - dist) * 3f);
+                var blended = Color.Lerp(_texture.GetPixel(px, py), _currentColor, alpha);
+                _texture.SetPixel(px, py, blended);
             }
         }
     }

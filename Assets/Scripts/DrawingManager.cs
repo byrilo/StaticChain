@@ -24,10 +24,15 @@ public class DrawingManager : NetworkBehaviour
 
         int chainId = GameManager.Instance.GetChainIdForPlayer(senderId, round);
         if (chainId < 0) return;
-        if (GameManager.Instance.HasSubmittedThisRound(chainId)) return;
+
+        // Разрешаем обновлять уже отправленный рисунок (кнопка-переключатель Save/Edit),
+        // но засчитываем сдачу раунда только один раз.
+        bool alreadySubmitted = GameManager.Instance.HasSubmittedThisRound(chainId);
 
         BroadcastDrawingRpc(chainId, round, senderId, pngData);
-        GameManager.Instance.ReportSubmission(chainId);
+
+        if (!alreadySubmitted)
+            GameManager.Instance.ReportSubmission(chainId);
     }
 
     [Rpc(SendTo.Everyone)]

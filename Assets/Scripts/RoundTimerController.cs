@@ -15,6 +15,11 @@ public class RoundTimerController : MonoBehaviour
     private float _timeLeft;
     private bool _autoActionDone;
 
+    private void Awake()
+    {
+        if (timerText != null) timerText.text = "";
+    }
+
     private void Update()
     {
         if (GameManager.Instance == null) return;

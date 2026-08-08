@@ -6,6 +6,7 @@ public class LobbyUIController : MonoBehaviour
     [SerializeField] private GameObject preConnectGroup; // Host/Join/JoinCodeInput/Nickname
     [SerializeField] private GameObject hostControls;    // RoundsInput/StartGameButton
     [SerializeField] private GameObject leaveButton;
+    [SerializeField] private GameObject playerListText;
 
     private bool _initialized;
     private bool _lastConnected;
@@ -24,5 +25,6 @@ public class LobbyUIController : MonoBehaviour
         preConnectGroup.SetActive(!connected);
         hostControls.SetActive(connected && isHost);
         leaveButton.SetActive(connected && !isHost);
+        if (playerListText != null) playerListText.SetActive(connected);
     }
 }
