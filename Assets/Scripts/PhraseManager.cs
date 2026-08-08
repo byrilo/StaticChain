@@ -69,8 +69,8 @@ public class PhraseManager : NetworkBehaviour
     private void RefreshText()
     {
         if (phraseStatusText == null) return;
-        var sb = new StringBuilder("Фразы:\n");
-        foreach (var p in _phrases) sb.AppendLine($"Цепь {p.ChainId}, раунд {p.Round}: {p.Phrase}");
+        var sb = new StringBuilder("Phrases:\n");
+        foreach (var p in _phrases) sb.AppendLine($"Chain {p.ChainId}, round {p.Round}: {p.Phrase}");
         phraseStatusText.text = sb.ToString();
     }
 }

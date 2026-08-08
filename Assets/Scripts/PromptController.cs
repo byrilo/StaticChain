@@ -28,13 +28,13 @@ public class PromptController : MonoBehaviour
 
         if (round < 0)
         {
-            promptText.text = "Ждём начала игры";
+            promptText.text = "Waiting for the game to start";
             return;
         }
 
         if (round >= GameManager.Instance.TotalRounds)
         {
-            promptText.text = "Раунды закончились!";
+            promptText.text = "Rounds finished!";
             return;
         }
 
@@ -46,11 +46,11 @@ public class PromptController : MonoBehaviour
         {
             if (round == 0)
             {
-                promptText.text = "Придумайте свою фразу и отправьте";
+                promptText.text = "Come up with your own phrase and send it";
             }
             else if (DrawingManager.Instance.TryGetDrawing(chainId, round - 1, out var png))
             {
-                promptText.text = "Угадайте фразу по рисунку:";
+                promptText.text = "Guess the phrase from the drawing:";
                 var texture = new Texture2D(2, 2);
                 texture.LoadImage(png);
                 promptImage.texture = texture;
@@ -58,15 +58,15 @@ public class PromptController : MonoBehaviour
             }
             else
             {
-                promptText.text = "Ждём рисунок предыдущего игрока...";
+                promptText.text = "Waiting for the previous player's drawing...";
             }
         }
         else
         {
             drawingCanvas.Clear();
             promptText.text = PhraseManager.Instance.TryGetPhrase(chainId, round - 1, out var text)
-                ? $"Нарисуйте: {text}"
-                : "Ждём фразу предыдущего игрока...";
+                ? $"Draw: {text}"
+                : "Waiting for the previous player's phrase...";
         }
     }
 }

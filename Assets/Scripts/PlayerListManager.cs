@@ -9,6 +9,11 @@ public class PlayerListManager : NetworkBehaviour
 
     private readonly NetworkList<PlayerInfo> _players = new NetworkList<PlayerInfo>();
 
+    private void Awake()
+    {
+        if (playerListText != null) playerListText.text = "Players in room:";
+    }
+
     public override void OnNetworkSpawn()
     {
         _players.OnListChanged += OnPlayersChanged;
@@ -46,8 +51,8 @@ public class PlayerListManager : NetworkBehaviour
 
     private void RefreshText()
     {
-        var sb = new StringBuilder("Игроки в комнате:\n");
-        foreach (var p in _players) sb.AppendLine($"Игрок {p.ClientId}");
+        var sb = new StringBuilder("Players in room:\n");
+        foreach (var p in _players) sb.AppendLine($"Player {p.ClientId}");
         playerListText.text = sb.ToString();
     }
 }

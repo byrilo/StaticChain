@@ -12,6 +12,7 @@ public class DrawingCanvas : MonoBehaviour, IPointerDownHandler, IDragHandler, I
     private RawImage _rawImage;
     private Color _currentColor = Color.black;
     private Vector2? _lastPixelPos;
+    private bool _locked;
 
     private void Awake()
     {
@@ -30,6 +31,11 @@ public class DrawingCanvas : MonoBehaviour, IPointerDownHandler, IDragHandler, I
     public void SetColorBlue() => SetColor(Color.blue);
     public void SetColorGreen() => SetColor(Color.green);
 
+    public void SetBrushSize(float size) => brushRadius = Mathf.Max(1, Mathf.RoundToInt(size));
+
+    public void Lock() => _locked = true;
+    public void Unlock() => _locked = false;
+
     public void Clear()
     {
         var pixels = new Color[textureSize * textureSize];
@@ -37,15 +43,21 @@ public class DrawingCanvas : MonoBehaviour, IPointerDownHandler, IDragHandler, I
         _texture.SetPixels(pixels);
         _texture.Apply();
         _lastPixelPos = null;
+        _locked = false;
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
+        if (_locked) return;
         _lastPixelPos = null;
         DrawAt(eventData);
     }
 
-    public void OnDrag(PointerEventData eventData) => DrawAt(eventData);
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (_locked) return;
+        DrawAt(eventData);
+    }
 
     public void OnPointerUp(PointerEventData eventData) => _lastPixelPos = null;
 

@@ -25,12 +25,12 @@ public class SessionManager : MonoBehaviour
             AuthenticationService.Instance.SwitchProfile("Player" + UnityEngine.Random.Range(0, 1000000));
 
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
-            statusText.text = "Готово к подключению";
+            statusText.text = "Ready to connect";
         }
         catch (Exception e)
         {
             Debug.LogException(e);
-            statusText.text = "Ошибка входа: " + e.Message;
+            statusText.text = "Sign-in error: " + e.Message;
         }
     }
 
@@ -46,12 +46,12 @@ public class SessionManager : MonoBehaviour
         {
             var options = new SessionOptions { MaxPlayers = 8 }.WithRelayNetwork();
             _session = await MultiplayerService.Instance.CreateSessionAsync(options);
-            statusText.text = $"Код комнаты: {_session.Code}\nNGO IsHost: {Unity.Netcode.NetworkManager.Singleton.IsHost}";
+            statusText.text = $"Room code: {_session.Code}";
         }
         catch (Exception e)
         {
             Debug.LogException(e);
-            statusText.text = "Ошибка создания: " + e.Message;
+            statusText.text = "Error creating room: " + e.Message;
             _actionInProgress = false;
         }
     }
@@ -65,13 +65,34 @@ public class SessionManager : MonoBehaviour
         {
             var code = joinCodeInput.text.Trim();
             _session = await MultiplayerService.Instance.JoinSessionByCodeAsync(code);
-            statusText.text = $"Подключено: {code}\nNGO IsClient: {Unity.Netcode.NetworkManager.Singleton.IsClient}, ConnectedClients: {Unity.Netcode.NetworkManager.Singleton.ConnectedClientsList.Count}";
+            statusText.text = "Connected!";
         }
         catch (Exception e)
         {
             Debug.LogException(e);
-            statusText.text = "Ошибка входа в комнату: " + e.Message;
+            statusText.text = "Error joining room: " + e.Message;
             _actionInProgress = false;
+        }
+    }
+
+    public async void OnLeaveLobbyClicked()
+    {
+        try
+        {
+            if (_session != null)
+            {
+                await _session.LeaveAsync();
+                _session = null;
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
+        finally
+        {
+            _actionInProgress = false;
+            statusText.text = "Ready to connect";
         }
     }
 }

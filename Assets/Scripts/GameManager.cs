@@ -16,15 +16,21 @@ public class GameManager : NetworkBehaviour
     private readonly NetworkVariable<int> _totalRounds = new NetworkVariable<int>(0);
     private readonly NetworkList<ulong> _playerOrder = new NetworkList<ulong>();
     private readonly HashSet<int> _submittedChainsThisRound = new HashSet<int>();
+    private readonly NetworkVariable<int> _submittedCount = new NetworkVariable<int>(0);
 
     public int CurrentRound => _currentRound.Value;
     public int TotalRounds => _totalRounds.Value;
     public int PlayerCount => _playerOrder.Count;
+    public int SubmittedCount => _submittedCount.Value;
     public bool GameStarted => _currentRound.Value >= 0;
 
     public static ContentType GetContentType(int round) => round % 2 == 0 ? ContentType.Phrase : ContentType.Drawing;
 
-    private void Awake() => Instance = this;
+    private void Awake()
+    {
+        Instance = this;
+        RefreshStatus();
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -71,9 +77,12 @@ public class GameManager : NetworkBehaviour
         if (!IsServer) return;
 
         _submittedChainsThisRound.Add(chainId);
+        _submittedCount.Value = _submittedChainsThisRound.Count;
+
         if (_submittedChainsThisRound.Count >= _playerOrder.Count)
         {
             _submittedChainsThisRound.Clear();
+            _submittedCount.Value = 0;
             _currentRound.Value = _currentRound.Value + 1 >= _totalRounds.Value
                 ? _totalRounds.Value
                 : _currentRound.Value + 1;
@@ -84,9 +93,10 @@ public class GameManager : NetworkBehaviour
     public void ResetGameRpc(RpcParams rpcParams = default)
     {
         if (rpcParams.Receive.SenderClientId != NetworkManager.ServerClientId) return;
-        if (_currentRound.Value < _totalRounds.Value) return; // разрешаем сброс только после финиша
+        if (_currentRound.Value < _totalRounds.Value) return; // allow reset only after the game finished
 
         _submittedChainsThisRound.Clear();
+        _submittedCount.Value = 0;
         _playerOrder.Clear();
         _currentRound.Value = -1;
         _totalRounds.Value = 0;
@@ -100,10 +110,10 @@ public class GameManager : NetworkBehaviour
         if (gameStatusText == null) return;
 
         if (_currentRound.Value < 0)
-            gameStatusText.text = "Лобби, ждём старта";
+            gameStatusText.text = "Lobby, waiting to start";
         else if (_currentRound.Value >= _totalRounds.Value)
-            gameStatusText.text = "Игра завершена!";
+            gameStatusText.text = "Game finished!";
         else
-            gameStatusText.text = $"Раунд {_currentRound.Value + 1} / {_totalRounds.Value}";
+            gameStatusText.text = $"Round {_currentRound.Value + 1} / {_totalRounds.Value}";
     }
 }
