@@ -28,7 +28,7 @@ public class DrawingSubmitUI : MonoBehaviour
         else
         {
             var pngData = drawingCanvas.EncodePng();
-            DrawingManager.Instance.SubmitDrawingRpc(pngData);
+            DrawingManager.Instance.SubmitDrawing(pngData);
             drawingCanvas.Lock();
         }
     }

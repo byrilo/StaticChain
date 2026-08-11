@@ -74,7 +74,7 @@ public class RoundTimerController : MonoBehaviour
         {
             if (drawingCanvas == null) return;
             var png = drawingCanvas.EncodePng();
-            DrawingManager.Instance.SubmitDrawingRpc(png);
+            DrawingManager.Instance.SubmitDrawing(png);
             drawingCanvas.Lock();
         }
     }
