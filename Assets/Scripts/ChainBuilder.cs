@@ -22,7 +22,7 @@ public class ChainBuilder : MonoBehaviour
         {
             var contentType = GameManager.GetContentType(round);
 
-            if (contentType == ContentType.Phrase)
+            if (contentType == ContentType.Voice) // не используется: заменено RevealController/RevealDisplayController
             {
                 if (PhraseManager.Instance.TryGetPhrase(chainId, round, out var text))
                     AddText(text);

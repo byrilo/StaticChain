@@ -4,7 +4,7 @@ using Unity.Netcode;
 using TMPro;
 using UnityEngine;
 
-public enum ContentType { Phrase, Drawing }
+public enum ContentType { Voice, Drawing }
 
 public class GameManager : NetworkBehaviour
 {
@@ -24,7 +24,7 @@ public class GameManager : NetworkBehaviour
     public int SubmittedCount => _submittedCount.Value;
     public bool GameStarted => _currentRound.Value >= 0;
 
-    public static ContentType GetContentType(int round) => round % 2 == 0 ? ContentType.Phrase : ContentType.Drawing;
+    public static ContentType GetContentType(int round) => round % 2 == 0 ? ContentType.Voice : ContentType.Drawing;
 
     private void Awake()
     {
@@ -101,7 +101,7 @@ public class GameManager : NetworkBehaviour
         _currentRound.Value = -1;
         _totalRounds.Value = 0;
 
-        PhraseManager.Instance.ClearAll();
+        VoiceManager.Instance.ClearAllRpc();
         DrawingManager.Instance.ClearAllRpc();
     }
 

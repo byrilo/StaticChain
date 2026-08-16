@@ -5,10 +5,10 @@ using TMPro;
 public class RoundTimerController : MonoBehaviour
 {
     [SerializeField] private TMP_Text timerText;
-    [SerializeField] private TMP_InputField phraseInput;
+    [SerializeField] private VoiceRecorder voiceRecorder;
     [SerializeField] private DrawingCanvas drawingCanvas;
 
-    private const float PhraseTimeLimit = 30f;
+    private const float VoiceTimeLimit = 30f;
     private const float DrawingTimeLimit = 180f;
 
     private int _lastRound = int.MinValue;
@@ -33,7 +33,7 @@ public class RoundTimerController : MonoBehaviour
             _lastRound = round;
             _autoActionDone = false;
             _timeLeft = roundActive
-                ? (GameManager.GetContentType(round) == ContentType.Phrase ? PhraseTimeLimit : DrawingTimeLimit)
+                ? (GameManager.GetContentType(round) == ContentType.Voice ? VoiceTimeLimit : DrawingTimeLimit)
                 : 0f;
         }
 
@@ -64,11 +64,21 @@ public class RoundTimerController : MonoBehaviour
     {
         var contentType = GameManager.GetContentType(round);
 
-        if (contentType == ContentType.Phrase)
+        if (contentType == ContentType.Voice)
         {
-            var text = phraseInput != null ? phraseInput.text : "";
-            if (string.IsNullOrWhiteSpace(text)) text = "...";
-            PhraseManager.Instance.SubmitPhraseRpc(text);
+            if (voiceRecorder == null) return;
+
+            if (voiceRecorder.IsRecording)
+                voiceRecorder.StopRecording();
+
+            var wav = voiceRecorder.EncodeToWav();
+            if (wav == null)
+            {
+                // Ничего не записали — шлём короткую тишину, чтобы раунд всё равно продвинулся.
+                wav = WavUtility.Encode(new float[8000], 1, 16000);
+            }
+
+            VoiceManager.Instance.SubmitVoice(wav);
         }
         else
         {

@@ -34,7 +34,7 @@ public class PhraseManager : NetworkBehaviour
         int round = GameManager.Instance.CurrentRound;
 
         if (round < 0 || round >= GameManager.Instance.TotalRounds) return;
-        if (GameManager.GetContentType(round) != ContentType.Phrase) return;
+        if (GameManager.GetContentType(round) != ContentType.Voice) return; // не используется: голос заменил текстовые фразы, оставлено нетронутым, чтобы не ломать сцену
 
         int chainId = GameManager.Instance.GetChainIdForPlayer(senderId, round);
         if (chainId < 0) return;
